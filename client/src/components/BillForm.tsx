@@ -16,6 +16,7 @@ import { Loader2 } from "lucide-react";
 const formSchema = insertBillSchema.extend({
   amount: z.string().min(1, "Jumlah harus diisi"),
   dueDate: z.coerce.date(),
+  invoiceUrl: z.string().url("Format URL tidak valid").optional().or(z.literal("")),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -101,7 +102,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
               id="title" 
               placeholder="Contoh: Wifi Indihome" 
               {...form.register("title")} 
-              className="rounded-lg"
+              className="rounded-lg bg-white border-slate-200"
             />
             {form.formState.errors.title && (
               <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>
@@ -116,7 +117,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
                 type="number" 
                 placeholder="150000" 
                 {...form.register("amount")}
-                className="rounded-lg"
+                className="rounded-lg bg-white border-slate-200"
               />
               {form.formState.errors.amount && (
                 <p className="text-xs text-red-500">{form.formState.errors.amount.message}</p>
@@ -132,7 +133,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
                 <SelectTrigger className="rounded-lg bg-white border-slate-200">
                   <SelectValue placeholder="Pilih" />
                 </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 shadow-md">
+                <SelectContent className="bg-white border-slate-200 shadow-md z-[100]">
                   {CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
@@ -150,7 +151,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
               value={form.watch("dueDate") instanceof Date 
                 ? form.watch("dueDate").toISOString().split('T')[0] 
                 : form.watch("dueDate") as string}
-              className="rounded-lg"
+              className="rounded-lg bg-white border-slate-200"
             />
              {form.formState.errors.dueDate && (
               <p className="text-xs text-red-500">{form.formState.errors.dueDate.message}</p>
@@ -164,7 +165,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
               type="url" 
               placeholder="https://link-ke-dokumen.com" 
               {...form.register("invoiceUrl")} 
-              className="rounded-lg"
+              className="rounded-lg bg-white border-slate-200"
             />
           </div>
 
@@ -190,7 +191,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
                   <SelectTrigger className="rounded-lg bg-white border-slate-200">
                     <SelectValue placeholder="Pilih interval" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-slate-200 shadow-md">
+                  <SelectContent className="bg-white border-slate-200 shadow-md z-[100]">
                     <SelectItem value="monthly">Setiap Bulan</SelectItem>
                     <SelectItem value="yearly">Setiap Tahun</SelectItem>
                     <SelectItem value="custom">Custom</SelectItem>

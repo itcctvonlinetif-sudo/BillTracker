@@ -69,6 +69,16 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
     }).format(value);
   };
 
+  const getIntervalLabel = (interval: string | null) => {
+    if (!interval) return "-";
+    switch (interval) {
+      case 'monthly': return 'Bulanan';
+      case 'yearly': return 'Tahunan';
+      case 'custom': return 'Custom';
+      default: return interval;
+    }
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -100,6 +110,19 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
 
           <div className="p-6 bg-white">
             <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Kategori</p>
+                  <p className="font-medium text-slate-800">{bill.category}</p>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Rutin</p>
+                  <p className="font-medium text-slate-800">
+                    {bill.isRecurring ? `Ya (${getIntervalLabel(bill.recurringInterval)})` : "Tidak"}
+                  </p>
+                </div>
+              </div>
+
               {/* Payment Checklist Section */}
               <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
                 <h3 className="text-sm font-semibold text-slate-900 mb-3 flex items-center gap-2">
@@ -131,7 +154,7 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
                 </div>
               </div>
 
-              {/* Due Date Info */}
+              {/* Info Section */}
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-4 text-sm">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
@@ -181,7 +204,6 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
                 className="flex-1 rounded-xl h-11"
                 onClick={() => {
                   setIsEditOpen(true);
-                  // Don't close parent yet, wait for edit to finish or cancel
                 }}
               >
                 <Edit className="w-4 h-4 mr-2" />
@@ -203,7 +225,7 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
         open={isEditOpen} 
         onOpenChange={(open) => {
           setIsEditOpen(open);
-          if (!open) onClose(); // Close detail dialog when edit closes
+          if (!open) onClose(); 
         }}
         initialData={bill}
       />
