@@ -47,20 +47,26 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
       category: initialData?.category || "Lainnya",
       isRecurring: initialData?.isRecurring || false,
       recurringInterval: initialData?.recurringInterval || "monthly",
+      invoiceUrl: initialData?.invoiceUrl || "",
       status: initialData?.status || "unpaid",
     },
   });
 
   const onSubmit = async (data: FormData) => {
     try {
+      const payload = {
+        ...data,
+        invoiceUrl: data.invoiceUrl || null,
+        recurringInterval: data.isRecurring ? data.recurringInterval : null
+      };
       if (isEditing) {
         await updateBill.mutateAsync({ 
           id: initialData.id, 
-          ...data 
+          ...payload 
         });
         toast({ title: "Berhasil", description: "Tagihan berhasil diperbarui" });
       } else {
-        await createBill.mutateAsync(data);
+        await createBill.mutateAsync(payload);
         toast({ title: "Berhasil", description: "Tagihan baru berhasil dibuat" });
       }
       onOpenChange(false);
@@ -78,7 +84,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
             {isEditing ? "Edit Tagihan" : "Tambah Tagihan Baru"}
@@ -123,10 +129,10 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
                 onValueChange={(val) => form.setValue("category", val)}
                 defaultValue={form.getValues("category")}
               >
-                <SelectTrigger className="rounded-lg">
+                <SelectTrigger className="rounded-lg bg-white border-slate-200">
                   <SelectValue placeholder="Pilih" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border-slate-200 shadow-md">
                   {CATEGORIES.map(cat => (
                     <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                   ))}
@@ -141,7 +147,6 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
               id="dueDate" 
               type="date" 
               {...form.register("dueDate")}
-              // Format date string YYYY-MM-DD for input type="date"
               value={form.watch("dueDate") instanceof Date 
                 ? form.watch("dueDate").toISOString().split('T')[0] 
                 : form.watch("dueDate") as string}
@@ -152,15 +157,47 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
             )}
           </div>
 
-          <div className="flex items-center space-x-2 pt-2">
-            <Checkbox 
-              id="isRecurring" 
-              checked={form.watch("isRecurring")}
-              onCheckedChange={(checked) => form.setValue("isRecurring", checked === true)}
+          <div className="space-y-2">
+            <Label htmlFor="invoiceUrl">Link Invoice / Dokumen</Label>
+            <Input 
+              id="invoiceUrl" 
+              type="url" 
+              placeholder="https://link-ke-dokumen.com" 
+              {...form.register("invoiceUrl")} 
+              className="rounded-lg"
             />
-            <Label htmlFor="isRecurring" className="text-sm font-normal cursor-pointer">
-              Tagihan rutin setiap bulan (Recurring)
-            </Label>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="isRecurring" 
+                checked={form.watch("isRecurring")}
+                onCheckedChange={(checked) => form.setValue("isRecurring", checked === true)}
+              />
+              <Label htmlFor="isRecurring" className="text-sm font-normal cursor-pointer">
+                Tagihan rutin (Recurring)
+              </Label>
+            </div>
+
+            {form.watch("isRecurring") && (
+              <div className="space-y-2 pl-6">
+                <Label htmlFor="recurringInterval">Interval</Label>
+                <Select 
+                  onValueChange={(val) => form.setValue("recurringInterval", val)}
+                  defaultValue={form.getValues("recurringInterval") || "monthly"}
+                >
+                  <SelectTrigger className="rounded-lg bg-white border-slate-200">
+                    <SelectValue placeholder="Pilih interval" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 shadow-md">
+                    <SelectItem value="monthly">Setiap Bulan</SelectItem>
+                    <SelectItem value="yearly">Setiap Tahun</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="pt-4">

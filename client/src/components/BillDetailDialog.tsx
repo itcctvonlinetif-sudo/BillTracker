@@ -132,25 +132,46 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
               </div>
 
               {/* Due Date Info */}
-              <div className="flex items-center gap-4 text-sm">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-                  <Calendar className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="font-medium text-slate-900">Jatuh Tempo</p>
-                  <p className="text-slate-500">
-                    {format(new Date(bill.dueDate), "EEEE, d MMMM yyyy", { locale: id })}
-                  </p>
-                  {!isPaid && (
-                    <p className={cn(
-                      "text-xs font-semibold mt-0.5",
-                      statusColor === 'red' ? "text-red-600" :
-                      statusColor === 'yellow' ? "text-amber-600" : "text-emerald-600"
-                    )}>
-                      {new Date(bill.dueDate) < new Date() ? "Lewat Jatuh Tempo" : formatDistanceToNow(new Date(bill.dueDate), { addSuffix: true, locale: id })}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-slate-900">Jatuh Tempo</p>
+                    <p className="text-slate-500">
+                      {format(new Date(bill.dueDate), "EEEE, d MMMM yyyy", { locale: id })}
                     </p>
-                  )}
+                    {!isPaid && (
+                      <p className={cn(
+                        "text-xs font-semibold mt-0.5",
+                        statusColor === 'red' ? "text-red-600" :
+                        statusColor === 'yellow' ? "text-amber-600" : "text-emerald-600"
+                      )}>
+                        {new Date(bill.dueDate) < new Date() ? "Lewat Jatuh Tempo" : formatDistanceToNow(new Date(bill.dueDate), { addSuffix: true, locale: id })}
+                      </p>
+                    )}
+                  </div>
                 </div>
+
+                {bill.invoiceUrl && (
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+                      <CreditCard className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-slate-900">Invoice / Dokumen</p>
+                      <a 
+                        href={bill.invoiceUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-medium"
+                      >
+                        Lihat Dokumen
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

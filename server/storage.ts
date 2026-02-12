@@ -4,28 +4,20 @@ import { bills, type Bill, type InsertBill } from "@shared/schema";
 import { eq, sql, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
-  // Bill Operations
   getBills(month?: string, year?: string): Promise<Bill[]>;
   getBill(id: number): Promise<Bill | undefined>;
   createBill(bill: InsertBill): Promise<Bill>;
   updateBill(id: number, updates: Partial<InsertBill>): Promise<Bill>;
   deleteBill(id: number): Promise<void>;
-  
-  // Reminder Operations (fetching bills that need reminding)
   getUnpaidBills(): Promise<Bill[]>;
   updateLastReminded(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
   async getBills(month?: string, year?: string): Promise<Bill[]> {
-    // Basic implementation: fetch all, or filter if params exist
-    // For MVP, if month/year provided, filter in SQL
     let query = db.select().from(bills);
     
     if (month && year) {
-      // Postgres date filtering
-      // This is a bit complex with raw SQL in ORM, simplified:
-      // Filter by range of dates for that month
       const startDate = new Date(`${year}-${month}-01`);
       const endDate = new Date(startDate);
       endDate.setMonth(endDate.getMonth() + 1);
