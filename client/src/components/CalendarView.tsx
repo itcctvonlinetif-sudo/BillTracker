@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format, startOfMonth, endOfMonth, isSameDay, isWithinInterval, subDays, differenceInDays } from "date-fns";
+import { format, startOfMonth, endOfMonth, isSameDay, isWithinInterval, subDays, differenceInDays, addMonths, addYears } from "date-fns";
 import { id } from "date-fns/locale";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -15,12 +15,11 @@ interface CalendarViewProps {
 }
 
 // Logic for status color
-export function getBillStatusColor(bill: Bill): BillStatusColor {
-  if (bill.status === "paid") return "gray";
+export function getBillStatusColor(bill: Bill, referenceDate: Date = new Date()): BillStatusColor {
+  if (bill.status === "paid" && isSameDay(new Date(bill.dueDate), referenceDate)) return "gray";
 
-  const today = new Date();
   const dueDate = new Date(bill.dueDate);
-  const diffDays = differenceInDays(dueDate, today);
+  const diffDays = differenceInDays(dueDate, referenceDate);
 
   if (diffDays <= 2) return "red"; // H-2 to H-0 or overdue
   if (diffDays <= 7) return "yellow"; // H-7 to H-3
@@ -30,7 +29,29 @@ export function getBillStatusColor(bill: Bill): BillStatusColor {
 export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }: CalendarViewProps) {
   // Custom render for day content to show dots
   const DayContent = ({ date }: { date: Date }) => {
-    const dayBills = bills.filter(b => isSameDay(new Date(b.dueDate), date));
+    // Show actual bills and projected recurring bills
+    const dayBills = bills.flatMap(bill => {
+      const dueDate = new Date(bill.dueDate);
+      if (isSameDay(dueDate, date)) return [bill];
+      
+      // Projection logic for recurring items up to 1 year
+      if (bill.isRecurring) {
+        let nextDate = new Date(dueDate);
+        const limitDate = addYears(new Date(), 1);
+        
+        while (nextDate <= limitDate) {
+          if (bill.recurringInterval === 'monthly') nextDate = addMonths(nextDate, 1);
+          else if (bill.recurringInterval === 'yearly') nextDate = addYears(nextDate, 1);
+          else break;
+          
+          if (isSameDay(nextDate, date)) {
+            return [{ ...bill, dueDate: nextDate, status: 'unpaid' as const }];
+          }
+          if (nextDate > date) break;
+        }
+      }
+      return [];
+    });
     
     // Sort by urgency: red > yellow > green > gray
     const sortedBills = dayBills.sort((a, b) => {

@@ -29,7 +29,8 @@ interface BillFormProps {
 
 const CATEGORIES = [
   "Internet & TV", "Listrik (PLN)", "Air (PDAM)", "Sewa Rumah/Kos", 
-  "Cicilan Bank", "Kartu Kredit", "Asuransi", "Langganan App", "Lainnya"
+  "Cicilan Bank", "Kartu Kredit", "Asuransi", "Langganan App",
+  "Kontrak Kerja", "Lisensi Software", "Perjanjian Sewa", "Lainnya"
 ];
 
 export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {

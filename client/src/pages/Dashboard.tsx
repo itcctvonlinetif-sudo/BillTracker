@@ -5,8 +5,8 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { BillForm } from "@/components/BillForm";
 import { BillDetailDialog } from "@/components/BillDetailDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Search } from "lucide-react";
-import { format, isSameDay } from "date-fns";
+import { Plus, Loader2, Search, Calendar as CalendarIcon, FileText, ShieldCheck } from "lucide-react";
+import { format, isSameDay, addMonths, addYears } from "date-fns";
 import { id } from "date-fns/locale";
 import type { Bill } from "@shared/schema";
 import { Input } from "@/components/ui/input";
@@ -49,10 +49,28 @@ export default function Dashboard() {
 
   const allBills = bills || [];
   
-  // Filter bills for the selected date
-  const billsOnSelectedDate = allBills.filter(bill => 
-    isSameDay(new Date(bill.dueDate), selectedDate)
-  );
+  // Get bills on selected date, including projected recurring ones
+  const billsOnSelectedDate = allBills.flatMap(bill => {
+    const dueDate = new Date(bill.dueDate);
+    if (isSameDay(dueDate, selectedDate)) return [bill];
+    
+    if (bill.isRecurring) {
+      let nextDate = new Date(dueDate);
+      const limitDate = addYears(new Date(), 1);
+      
+      while (nextDate <= limitDate) {
+        if (bill.recurringInterval === 'monthly') nextDate = addMonths(nextDate, 1);
+        else if (bill.recurringInterval === 'yearly') nextDate = addYears(nextDate, 1);
+        else break;
+        
+        if (isSameDay(nextDate, selectedDate)) {
+          return [{ ...bill, dueDate: nextDate, status: 'unpaid' as const }];
+        }
+        if (nextDate > selectedDate) break;
+      }
+    }
+    return [];
+  });
 
   // Filter bills for search list (if searching)
   const filteredBills = searchTerm 
@@ -180,6 +198,17 @@ export default function Dashboard() {
                   })
                 )}
               </div>
+            </div>
+
+            {/* Quick Categories Help */}
+            <div className="bg-indigo-50 rounded-2xl p-4 border border-indigo-100">
+              <h4 className="text-sm font-bold text-indigo-900 mb-2 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4" />
+                Manajemen Kontrak
+              </h4>
+              <p className="text-xs text-indigo-700 leading-relaxed">
+                Gunakan kategori <b>Kontrak Kerja</b> atau <b>Lisensi</b> untuk memantau masa berlaku dokumen penting Anda di kalender.
+              </p>
             </div>
           </div>
         </div>
