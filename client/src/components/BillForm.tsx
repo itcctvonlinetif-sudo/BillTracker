@@ -160,14 +160,26 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="invoiceUrl">Link Invoice / Dokumen</Label>
-            <Input 
-              id="invoiceUrl" 
-              type="url" 
-              placeholder="https://link-ke-dokumen.com" 
-              {...form.register("invoiceUrl")} 
-              className="rounded-lg bg-white border-slate-200"
-            />
+            <Label htmlFor="invoiceFile">Upload Invoice / Dokumen</Label>
+            <div className="flex items-center gap-2">
+              <Input 
+                id="invoiceFile" 
+                type="file" 
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    // Simulating file upload to a URL
+                    const fakeUrl = URL.createObjectURL(file);
+                    form.setValue("invoiceUrl", fakeUrl);
+                    toast({ title: "File Terpilih", description: file.name });
+                  }
+                }}
+                className="rounded-lg bg-white border-slate-200 cursor-pointer"
+              />
+            </div>
+            {form.watch("invoiceUrl") && (
+              <p className="text-[10px] text-emerald-600 font-medium">✓ File berhasil diunggah (simulasi)</p>
+            )}
           </div>
 
           <div className="space-y-3 pt-2">
@@ -193,8 +205,11 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
                     <SelectValue placeholder="Pilih interval" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-slate-200 shadow-md z-[100]">
-                    <SelectItem value="monthly">Setiap Bulan</SelectItem>
-                    <SelectItem value="yearly">Setiap Tahun</SelectItem>
+                    <SelectItem value="monthly">Setiap Bulan (1 Bln)</SelectItem>
+                    <SelectItem value="3-months">Setiap 3 Bulan</SelectItem>
+                    <SelectItem value="6-months">Setiap 6 Bulan</SelectItem>
+                    <SelectItem value="yearly">Setiap Tahun (1 Thn)</SelectItem>
+                    <SelectItem value="2-years">Setiap 2 Tahun</SelectItem>
                     <SelectItem value="custom">Custom</SelectItem>
                   </SelectContent>
                 </Select>

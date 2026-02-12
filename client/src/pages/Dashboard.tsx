@@ -60,7 +60,10 @@ export default function Dashboard() {
       
       while (nextDate <= limitDate) {
         if (bill.recurringInterval === 'monthly') nextDate = addMonths(nextDate, 1);
+        else if (bill.recurringInterval === '3-months') nextDate = addMonths(nextDate, 3);
+        else if (bill.recurringInterval === '6-months') nextDate = addMonths(nextDate, 6);
         else if (bill.recurringInterval === 'yearly') nextDate = addYears(nextDate, 1);
+        else if (bill.recurringInterval === '2-years') nextDate = addYears(nextDate, 2);
         else break;
         
         if (isSameDay(nextDate, selectedDate)) {

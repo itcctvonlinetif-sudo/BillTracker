@@ -14,9 +14,14 @@ interface CalendarViewProps {
   selectedDate: Date | undefined;
 }
 
+// Helper to check if a bill is paid considering projection
+function isPaidStatus(bill: Bill) {
+  return bill.status === "paid";
+}
+
 // Logic for status color
 export function getBillStatusColor(bill: Bill, referenceDate: Date = new Date()): BillStatusColor {
-  if (bill.status === "paid" && isSameDay(new Date(bill.dueDate), referenceDate)) return "gray";
+  if (isPaidStatus(bill)) return "gray";
 
   const dueDate = new Date(bill.dueDate);
   const diffDays = differenceInDays(dueDate, referenceDate);
@@ -41,7 +46,10 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
         
         while (nextDate <= limitDate) {
           if (bill.recurringInterval === 'monthly') nextDate = addMonths(nextDate, 1);
+          else if (bill.recurringInterval === '3-months') nextDate = addMonths(nextDate, 3);
+          else if (bill.recurringInterval === '6-months') nextDate = addMonths(nextDate, 6);
           else if (bill.recurringInterval === 'yearly') nextDate = addYears(nextDate, 1);
+          else if (bill.recurringInterval === '2-years') nextDate = addYears(nextDate, 2);
           else break;
           
           if (isSameDay(nextDate, date)) {
@@ -68,7 +76,9 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
         {/* Bill indicators */}
         <div className="absolute bottom-1 flex gap-0.5 justify-center w-full">
           {sortedBills.slice(0, 3).map((bill) => {
-            const color = getBillStatusColor(bill);
+            const color = getBillStatusColor(bill, date);
+            const isOverdue = !isPaidStatus(bill) && new Date(bill.dueDate) < new Date();
+            
             return (
               <div 
                 key={bill.id} 
@@ -77,7 +87,8 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
                   color === 'red' ? "bg-red-500" :
                   color === 'yellow' ? "bg-amber-400" :
                   color === 'green' ? "bg-emerald-500" :
-                  "bg-gray-400"
+                  "bg-gray-400",
+                  isOverdue && "animate-[ping_1s_cubic-bezier(0,0,0.2,1)_infinite]"
                 )}
               />
             );

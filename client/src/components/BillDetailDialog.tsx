@@ -73,7 +73,10 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
     if (!interval) return "-";
     switch (interval) {
       case 'monthly': return 'Bulanan';
+      case '3-months': return 'Per 3 Bulan';
+      case '6-months': return 'Per 6 Bulan';
       case 'yearly': return 'Tahunan';
+      case '2-years': return 'Per 2 Tahun';
       case 'custom': return 'Custom';
       default: return interval;
     }
