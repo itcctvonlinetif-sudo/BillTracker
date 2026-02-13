@@ -108,15 +108,7 @@ export default function Dashboard() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-display font-bold text-slate-900">
-            Halo, Pembayar Setia 👋
-          </h2>
-          <p className="text-slate-500 mt-1">
-            Jangan lupa bayar tagihan tepat waktu ya!
-          </p>
-        </div>
+        
 
         {/* Stats Cards */}
         <DashboardStats bills={allBills} />
@@ -210,7 +202,7 @@ export default function Dashboard() {
                 Manajemen Kontrak
               </h4>
               <p className="text-xs text-indigo-700 leading-relaxed">
-                Gunakan kategori <b>Kontrak Kerja</b> atau <b>Lisensi</b> untuk memantau masa berlaku dokumen penting Anda di kalender.
+                Gunakan kategori <b>Kontrak Kerjasama</b> atau <b>Lisensi</b> untuk memantau masa berlaku dokumen penting Anda di kalender.
               </p>
             </div>
           </div>

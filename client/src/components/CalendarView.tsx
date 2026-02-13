@@ -23,8 +23,9 @@ function isPaidStatus(bill: Bill) {
 export function getBillStatusColor(bill: Bill, referenceDate: Date = new Date()): BillStatusColor {
   if (isPaidStatus(bill)) return "gray";
 
+  const today = new Date();
   const dueDate = new Date(bill.dueDate);
-  const diffDays = differenceInDays(dueDate, referenceDate);
+  const diffDays = differenceInDays(dueDate, today);
 
   if (diffDays <= 2) return "red"; // H-2 to H-0 or overdue
   if (diffDays <= 7) return "yellow"; // H-7 to H-3
@@ -76,8 +77,8 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
         {/* Bill indicators */}
         <div className="absolute bottom-1 flex gap-0.5 justify-center w-full">
           {sortedBills.slice(0, 3).map((bill) => {
-            const color = getBillStatusColor(bill, date);
-            const isOverdue = !isPaidStatus(bill) && new Date(bill.dueDate) < new Date();
+            const color = getBillStatusColor(bill, new Date());
+            const isDueOrOverdue = !isPaidStatus(bill) && differenceInDays(new Date(bill.dueDate), new Date()) <= 0;
             
             return (
               <div 
@@ -88,7 +89,7 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
                   color === 'yellow' ? "bg-amber-400" :
                   color === 'green' ? "bg-emerald-500" :
                   "bg-gray-400",
-                  isOverdue && "animate-[ping_1s_cubic-bezier(0,0,0.2,1)_infinite]"
+                  isDueOrOverdue && "animate-[ping_0.5s_cubic-bezier(0,0,0.2,1)_infinite]"
                 )}
               />
             );
