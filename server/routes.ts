@@ -2,6 +2,9 @@
 import type { Express } from "express";
 import type { Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { bills } from "@shared/schema";
+import { eq, and, gte, lte, isNull, or } from "drizzle-orm";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { differenceInDays, startOfDay, isSameDay } from "date-fns";
