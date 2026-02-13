@@ -1,5 +1,5 @@
 
-import { pgTable, text, serial, boolean, timestamp, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, boolean, timestamp, integer, numeric } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -13,6 +13,8 @@ export const bills = pgTable("bills", {
   isRecurring: boolean("is_recurring").default(false),
   recurringInterval: text("recurring_interval"), // "monthly", "yearly", or "custom"
   invoiceUrl: text("invoice_url"), // URL for uploaded invoice
+  reminderSoundInterval: integer("reminder_sound_interval").default(120), // minutes, default 2 hours
+  lastEmailRemindedAt: timestamp("last_email_reminded_at"),
   createdAt: timestamp("created_at").defaultNow(),
   lastRemindedAt: timestamp("last_reminded_at"),
 });

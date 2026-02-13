@@ -194,6 +194,18 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
               </Label>
             </div>
 
+            <div className="space-y-2">
+              <Label htmlFor="reminderSoundInterval">Interval Pengingat Suara (Menit)</Label>
+              <Input 
+                id="reminderSoundInterval" 
+                type="number" 
+                {...form.register("reminderSoundInterval", { valueAsNumber: true })}
+                className="rounded-lg bg-white border-slate-200"
+                placeholder="120"
+              />
+              <p className="text-[10px] text-slate-500">Hanya untuk status MERAH.</p>
+            </div>
+
             {form.watch("isRecurring") && (
               <div className="space-y-2 pl-6">
                 <Label htmlFor="recurringInterval">Interval</Label>

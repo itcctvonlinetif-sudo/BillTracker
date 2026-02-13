@@ -80,61 +80,37 @@ export async function registerRoutes(
       const dueDate = new Date(bill.dueDate);
       const diffDays = differenceInDays(startOfDay(dueDate), startOfDay(now));
       
-      // Logic from user requirements:
-      // 🔴 Red: H-2 to H-0 (diffDays <= 2 && diffDays >= 0) -> Remind frequent
-      // 🟡 Yellow: H-7 to H-3 (diffDays <= 7 && diffDays >= 3) -> Remind 2x daily
-      // 🟢 Green: > 7 days -> No reminder
+      const lastEmail = bill.lastEmailRemindedAt ? new Date(bill.lastEmailRemindedAt) : null;
+      const lastSound = bill.lastRemindedAt ? new Date(bill.lastRemindedAt) : null;
 
-      let shouldRemind = false;
-      let reminderType = "";
-
-      if (diffDays <= 0) {
-        // Today or Overdue (Red logic)
-        // Reminder every 10 mins (simulated)
-        // In real app: check lastRemindedAt
-        const minsSinceLast = bill.lastRemindedAt 
-          ? (now.getTime() - new Date(bill.lastRemindedAt).getTime()) / 60000 
-          : Infinity;
-          
-        if (minsSinceLast >= 10) {
-          shouldRemind = true;
-          reminderType = "URGENT (Every 10 mins)";
+      // RED Status: H-2 to H-0 or Overdue
+      if (diffDays <= 2) {
+        // 1. Email Reminder: Daily
+        const shouldEmail = !lastEmail || !isSameDay(lastEmail, now);
+        if (shouldEmail) {
+          console.log(`📧 [RED] DAILY EMAIL REMINDER: ${bill.title}`);
+          // Send email here...
+          await db.update(bills).set({ lastEmailRemindedAt: now }).where(eq(bills.id, bill.id));
         }
-      } else if (diffDays <= 2) {
-        // H-2 to H-1 (Red logic)
-        // Reminder every 1 hour
-        const hoursSinceLast = bill.lastRemindedAt 
-          ? (now.getTime() - new Date(bill.lastRemindedAt).getTime()) / 3600000 
-          : Infinity;
 
-        if (hoursSinceLast >= 1) {
-          shouldRemind = true;
-          reminderType = "HIGH PRIORITY (Every 1 hour)";
+        // 2. Sound Reminder: Every X minutes (default 120)
+        const soundInterval = bill.reminderSoundInterval || 120;
+        const minsSinceSound = lastSound ? (now.getTime() - lastSound.getTime()) / 60000 : Infinity;
+        if (minsSinceSound >= soundInterval) {
+          console.log(`🔊 [RED] SOUND ALERT: ${bill.title} (Every ${soundInterval}m)`);
+          // Mark in DB to track interval
+          await storage.updateLastReminded(bill.id);
         }
-      } else if (diffDays <= 7 && diffDays >= 3) {
-        // H-7 to H-3 (Yellow logic)
-        // Reminder 2x daily (09:00 & 15:00)
-        // We simulate by checking if current hour is 9 or 15 and we haven't sent one this hour
-        const currentHour = now.getHours();
-        const sentToday = bill.lastRemindedAt && isSameDay(new Date(bill.lastRemindedAt), now);
-        
-        // Simple logic: if hour is 9 or 15 and we haven't reminded in the last 6 hours
-         const hoursSinceLast = bill.lastRemindedAt 
-          ? (now.getTime() - new Date(bill.lastRemindedAt).getTime()) / 3600000 
-          : Infinity;
-
-        if ((currentHour === 9 || currentHour === 15) && hoursSinceLast > 4) {
-             shouldRemind = true;
-             reminderType = "MEDIUM PRIORITY (2x Daily)";
+      } 
+      // YELLOW Status: H-7 to H-3
+      else if (diffDays <= 7 && diffDays >= 3) {
+        // Email every 2 days
+        const daysSinceEmail = lastEmail ? differenceInDays(now, lastEmail) : Infinity;
+        if (daysSinceEmail >= 2) {
+          console.log(`📧 [YELLOW] 2-DAY EMAIL REMINDER: ${bill.title}`);
+          // Send email here...
+          await db.update(bills).set({ lastEmailRemindedAt: now }).where(eq(bills.id, bill.id));
         }
-      }
-
-      if (shouldRemind) {
-        console.log(`📧 SENDING EMAIL REMINDER for "${bill.title}": ${reminderType}`);
-        // Here we would call the email service (SendGrid/Resend)
-        // await sendEmail(...) 
-        
-        await storage.updateLastReminded(bill.id);
       }
     }
   }, 60000); // Check every minute
