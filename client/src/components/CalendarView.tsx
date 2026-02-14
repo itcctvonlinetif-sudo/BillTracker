@@ -38,10 +38,17 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
     const redBills = bills.filter(b => getBillStatusColor(b) === 'red');
     if (redBills.length > 0) {
       const playAlert = () => {
-        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
-        audio.play().catch(() => console.log("Audio playback needs interaction first"));
+        // Use a more standard/reliable sound URL
+        const audio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_78390a3607.mp3");
+        audio.volume = 0.5;
+        audio.play().catch(() => {
+          console.log("Audio playback blocked. Click anywhere on the page to enable sound alerts.");
+        });
       };
-      // Auto-play alert check could go here if needed
+      
+      // Attempt to play on mount/update if there are red bills
+      // Browser will block this until first user interaction
+      playAlert();
     }
   }, [bills]);
 

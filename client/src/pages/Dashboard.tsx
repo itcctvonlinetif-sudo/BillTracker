@@ -5,7 +5,7 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { BillForm } from "@/components/BillForm";
 import { BillDetailDialog } from "@/components/BillDetailDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Search, Calendar as CalendarIcon, FileText, ShieldCheck } from "lucide-react";
+import { Plus, Loader2, Search, Calendar as CalendarIcon, FileText, ShieldCheck, Mail, Volume2 } from "lucide-react";
 import { format, isSameDay, addMonths, addYears } from "date-fns";
 import { id } from "date-fns/locale";
 import type { Bill } from "@shared/schema";
