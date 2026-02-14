@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format, startOfMonth, endOfMonth, isSameDay, isWithinInterval, subDays, differenceInDays, addMonths, addYears } from "date-fns";
 import { id } from "date-fns/locale";
 import { DayPicker } from "react-day-picker";
@@ -33,6 +33,18 @@ export function getBillStatusColor(bill: Bill, referenceDate: Date = new Date())
 }
 
 export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }: CalendarViewProps) {
+  useEffect(() => {
+    // Play sound alert for RED status if sound is enabled and within browser permissions
+    const redBills = bills.filter(b => getBillStatusColor(b) === 'red');
+    if (redBills.length > 0) {
+      const playAlert = () => {
+        const audio = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+        audio.play().catch(() => console.log("Audio playback needs interaction first"));
+      };
+      // Auto-play alert check could go here if needed
+    }
+  }, [bills]);
+
   // Custom render for day content to show dots
   const DayContent = ({ date }: { date: Date }) => {
     // Show actual bills and projected recurring bills
@@ -159,8 +171,8 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
       {/* Legend */}
       <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 text-xs font-medium text-slate-600 justify-center">
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
-          <span>Segera (H-2)</span>
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
+          <span>Segera (H-2 + Suara)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>

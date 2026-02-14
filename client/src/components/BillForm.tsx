@@ -10,13 +10,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, Link as LinkIcon, Volume2, Mail } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Form schema - we need to adapt a bit for the form (numbers as strings etc)
 const formSchema = insertBillSchema.extend({
   amount: z.string().min(1, "Jumlah harus diisi"),
   dueDate: z.coerce.date(),
-  invoiceUrl: z.string().url("Format URL tidak valid").optional().or(z.literal("")),
+  invoiceUrl: z.string().optional().or(z.literal("")),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -30,7 +31,7 @@ interface BillFormProps {
 const CATEGORIES = [
   "Internet & TV", "Listrik (PLN)", "Air (PDAM)", "Sewa Rumah/Kos", 
   "Cicilan Bank", "Kartu Kredit", "Asuransi", "Langganan App",
-  "Kontrak Kerjasama", "Lisensi Software", "Perjanjian Sewa", "Lainnya"
+  "Kontrak Kerja", "Lisensi Software", "Perjanjian Sewa", "Lainnya"
 ];
 
 export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
@@ -50,6 +51,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
       isRecurring: initialData?.isRecurring || false,
       recurringInterval: initialData?.recurringInterval || "monthly",
       invoiceUrl: initialData?.invoiceUrl || "",
+      reminderSoundInterval: initialData?.reminderSoundInterval || 120,
       status: initialData?.status || "unpaid",
     },
   });
@@ -86,7 +88,7 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-white">
+      <DialogContent className="sm:max-w-[450px] bg-white max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-display text-xl">
             {isEditing ? "Edit Tagihan" : "Tambah Tagihan Baru"}
@@ -96,124 +98,148 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor="title">Nama Tagihan</Label>
-            <Input 
-              id="title" 
-              placeholder="Contoh: Wifi Indihome" 
-              {...form.register("title")} 
-              className="rounded-lg bg-white border-slate-200"
-            />
-            {form.formState.errors.title && (
-              <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
+          {/* Section: Basic Info */}
+          <div className="space-y-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
             <div className="space-y-2">
-              <Label htmlFor="amount">Jumlah (Rp)</Label>
+              <Label htmlFor="title">Nama Tagihan</Label>
               <Input 
-                id="amount" 
-                type="number" 
-                placeholder="150000" 
-                {...form.register("amount")}
+                id="title" 
+                placeholder="Contoh: Wifi Indihome" 
+                {...form.register("title")} 
                 className="rounded-lg bg-white border-slate-200"
               />
-              {form.formState.errors.amount && (
-                <p className="text-xs text-red-500">{form.formState.errors.amount.message}</p>
+              {form.formState.errors.title && (
+                <p className="text-xs text-red-500">{form.formState.errors.title.message}</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="category">Kategori</Label>
-              <Select 
-                onValueChange={(val) => form.setValue("category", val)}
-                defaultValue={form.getValues("category")}
-              >
-                <SelectTrigger className="rounded-lg bg-white border-slate-200">
-                  <SelectValue placeholder="Pilih" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border-slate-200 shadow-md z-[100]">
-                  {CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Jumlah (Rp)</Label>
+                <Input 
+                  id="amount" 
+                  type="number" 
+                  placeholder="150000" 
+                  {...form.register("amount")}
+                  className="rounded-lg bg-white border-slate-200"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Kategori</Label>
+                <Select 
+                  onValueChange={(val) => form.setValue("category", val)}
+                  defaultValue={form.getValues("category")}
+                >
+                  <SelectTrigger className="rounded-lg bg-white border-slate-200">
+                    <SelectValue placeholder="Pilih" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border-slate-200 shadow-md z-[100]">
+                    {CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="dueDate">Jatuh Tempo</Label>
-            <Input 
-              id="dueDate" 
-              type="date" 
-              {...form.register("dueDate")}
-              value={form.watch("dueDate") instanceof Date 
-                ? form.watch("dueDate").toISOString().split('T')[0] 
-                : form.watch("dueDate") as string}
-              className="rounded-lg bg-white border-slate-200"
-            />
-             {form.formState.errors.dueDate && (
-              <p className="text-xs text-red-500">{form.formState.errors.dueDate.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="invoiceFile">Upload Invoice / Dokumen</Label>
-            <div className="flex items-center gap-2">
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">Jatuh Tempo</Label>
               <Input 
-                id="invoiceFile" 
-                type="file" 
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    // Simulating file upload to a URL
-                    const fakeUrl = URL.createObjectURL(file);
-                    form.setValue("invoiceUrl", fakeUrl);
-                    toast({ title: "File Terpilih", description: file.name });
-                  }
-                }}
-                className="rounded-lg bg-white border-slate-200 cursor-pointer"
+                id="dueDate" 
+                type="date" 
+                {...form.register("dueDate")}
+                value={form.watch("dueDate") instanceof Date 
+                  ? form.watch("dueDate").toISOString().split('T')[0] 
+                  : form.watch("dueDate") as string}
+                className="rounded-lg bg-white border-slate-200"
               />
             </div>
-            {form.watch("invoiceUrl") && (
-              <p className="text-[10px] text-emerald-600 font-medium">✓ File berhasil diunggah (simulasi)</p>
-            )}
           </div>
 
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center space-x-2">
+          {/* Section: Document Upload */}
+          <div className="space-y-2 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+            <Label className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-primary" />
+              Invoice / Dokumen
+            </Label>
+            <Tabs defaultValue={form.watch("invoiceUrl")?.startsWith("http") ? "link" : "upload"} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-100 p-1">
+                <TabsTrigger value="upload" className="rounded-lg text-xs py-1.5 flex items-center gap-1.5">
+                  <Upload className="w-3 h-3" /> Upload
+                </TabsTrigger>
+                <TabsTrigger value="link" className="rounded-lg text-xs py-1.5 flex items-center gap-1.5">
+                  <LinkIcon className="w-3 h-3" /> Link
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="upload" className="mt-2">
+                <Input 
+                  type="file" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const fakeUrl = URL.createObjectURL(file);
+                      form.setValue("invoiceUrl", fakeUrl);
+                      toast({ title: "File Terpilih", description: file.name });
+                    }
+                  }}
+                  className="rounded-lg bg-white border-slate-200 cursor-pointer h-10 py-1.5"
+                />
+              </TabsContent>
+              <TabsContent value="link" className="mt-2">
+                <Input 
+                  type="url" 
+                  placeholder="https://link-ke-dokumen.com" 
+                  {...form.register("invoiceUrl")} 
+                  className="rounded-lg bg-white border-slate-200"
+                />
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Section: Notifications */}
+          <div className="space-y-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+            <Label className="flex items-center gap-2">
+              <Mail className="w-4 h-4 text-primary" />
+              Pengaturan Notifikasi (Status Merah)
+            </Label>
+            
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2 flex-1">
+                <Volume2 className="w-4 h-4 text-slate-400" />
+                <div className="flex-1">
+                  <Label htmlFor="reminderSoundInterval" className="text-[11px] text-slate-500">Interval Suara (Menit)</Label>
+                  <Input 
+                    id="reminderSoundInterval" 
+                    type="number" 
+                    {...form.register("reminderSoundInterval", { valueAsNumber: true })}
+                    className="h-9 rounded-lg bg-white border-slate-200 mt-1"
+                    placeholder="120"
+                  />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-2 bg-white/50 p-3 rounded-xl border border-slate-100">
               <Checkbox 
                 id="isRecurring" 
                 checked={form.watch("isRecurring")}
                 onCheckedChange={(checked) => form.setValue("isRecurring", checked === true)}
               />
-              <Label htmlFor="isRecurring" className="text-sm font-normal cursor-pointer">
-                Tagihan rutin (Recurring)
+              <Label htmlFor="isRecurring" className="text-sm font-medium cursor-pointer">
+                Aktifkan Tagihan Rutin (Recurring)
               </Label>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="reminderSoundInterval">Interval Pengingat Suara (Menit)</Label>
-              <Input 
-                id="reminderSoundInterval" 
-                type="number" 
-                {...form.register("reminderSoundInterval", { valueAsNumber: true })}
-                className="rounded-lg bg-white border-slate-200"
-                placeholder="120"
-              />
-              <p className="text-[10px] text-slate-500">Hanya untuk status MERAH.</p>
-            </div>
-
             {form.watch("isRecurring") && (
-              <div className="space-y-2 pl-6">
-                <Label htmlFor="recurringInterval">Interval</Label>
+              <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                <Label htmlFor="recurringInterval" className="text-xs">Interval Pengulangan</Label>
                 <Select 
                   onValueChange={(val) => form.setValue("recurringInterval", val)}
                   defaultValue={form.getValues("recurringInterval") || "monthly"}
                 >
-                  <SelectTrigger className="rounded-lg bg-white border-slate-200">
+                  <SelectTrigger className="rounded-lg bg-white border-slate-200 h-10">
                     <SelectValue placeholder="Pilih interval" />
                   </SelectTrigger>
                   <SelectContent className="bg-white border-slate-200 shadow-md z-[100]">
@@ -229,22 +255,22 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
             )}
           </div>
 
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-2">
             <Button 
               type="button" 
               variant="outline" 
               onClick={() => onOpenChange(false)}
-              className="rounded-xl"
+              className="rounded-xl flex-1"
             >
               Batal
             </Button>
             <Button 
               type="submit" 
               disabled={isPending}
-              className="rounded-xl bg-primary hover:bg-primary/90"
+              className="rounded-xl flex-1 bg-primary hover:bg-primary/90"
             >
               {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditing ? "Simpan Perubahan" : "Buat Tagihan"}
+              {isEditing ? "Simpan" : "Buat Tagihan"}
             </Button>
           </DialogFooter>
         </form>
@@ -252,3 +278,4 @@ export function BillForm({ open, onOpenChange, initialData }: BillFormProps) {
     </Dialog>
   );
 }
+import { FileText } from "lucide-react";
