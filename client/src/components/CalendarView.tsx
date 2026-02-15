@@ -124,6 +124,16 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
   return (
     <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 p-6 border border-slate-100">
       <style>{`
+        .rdp {
+          margin: 0;
+          width: 100%;
+        }
+        .rdp-months {
+          width: 100%;
+        }
+        .rdp-month {
+          width: 100%;
+        }
         .rdp-nav_button { 
           color: #64748b; 
           background: #f1f5f9;
@@ -155,17 +165,17 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
           IconRight: () => <ChevronRight className="w-5 h-5" />,
         }}
         classNames={{
-          month: "space-y-4",
+          month: "space-y-4 w-full",
           caption: "flex justify-between pt-1 relative items-center mb-4 px-2",
           caption_label: "text-lg font-display font-bold text-slate-800 capitalize",
           nav: "space-x-1 flex items-center",
           table: "w-full border-collapse space-y-1",
-          head_row: "flex",
-          head_cell: "text-slate-400 rounded-md w-full font-normal text-[0.8rem]",
+          head_row: "flex w-full",
+          head_cell: "text-slate-400 rounded-md flex-1 font-normal text-[0.8rem]",
           row: "flex w-full mt-2",
-          cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/5 [&:has([aria-selected].day-outside)]:bg-primary/50",
+          cell: "relative p-0 text-center text-sm focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-primary/5 [&:has([aria-selected].day-outside)]:bg-primary/50 flex-1",
           day: cn(
-            "h-12 w-12 p-0 font-normal aria-selected:opacity-100 hover:bg-slate-50 rounded-xl transition-all cursor-pointer",
+            "h-12 w-full p-0 font-normal aria-selected:opacity-100 hover:bg-slate-50 rounded-xl transition-all cursor-pointer flex items-center justify-center",
           ),
           day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground rounded-xl shadow-lg shadow-primary/30",
           day_today: "bg-slate-100 text-slate-900 font-bold border-2 border-slate-200 rounded-xl",
@@ -179,7 +189,7 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
       <div className="mt-6 pt-6 border-t border-slate-100 flex flex-wrap gap-4 text-xs font-medium text-slate-600 justify-center">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></div>
-          <span>Segera (H-2 + Suara)</span>
+          <span>Segera (H-2)</span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-full bg-amber-400"></div>
