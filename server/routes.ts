@@ -8,6 +8,62 @@ import { eq, and, gte, lte, isNull, or } from "drizzle-orm";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { differenceInDays, startOfDay, isSameDay } from "date-fns";
+import { Resend } from "resend";
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+
+async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW') {
+  if (!resend) {
+    console.log(`[Email] Skipping real email (API Key missing) for: ${bill.title}`);
+    return;
+  }
+
+  try {
+    const amountStr = Number(bill.amount).toLocaleString('id-ID');
+    const dueDateStr = new Date(bill.dueDate).toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+
+    const subject = urgency === 'RED' 
+      ? `🚨 SEGARA BAYAR: Tagihan ${bill.title} Jatuh Tempo!`
+      : `📅 PENGINGAT: Tagihan ${bill.title} Mendekati Jatuh Tempo`;
+
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded: 8px;">
+        <h2 style="color: ${urgency === 'RED' ? '#ef4444' : '#f59e0b'}; margin-top: 0;">Halo, Pembayar Setia!</h2>
+        <p>Ini adalah pengingat otomatis untuk tagihan Anda:</p>
+        <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0;">
+          <p style="margin: 5px 0;"><strong>Tagihan:</strong> ${bill.title}</p>
+          <p style="margin: 5px 0;"><strong>Jumlah:</strong> Rp ${amountStr}</p>
+          <p style="margin: 5px 0;"><strong>Jatuh Tempo:</strong> ${dueDateStr}</p>
+          <p style="margin: 5px 0;"><strong>Kategori:</strong> ${bill.category}</p>
+        </div>
+        <p>Silakan segera lakukan pembayaran untuk menghindari denda atau gangguan layanan.</p>
+        <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;">
+        <p style="font-size: 12px; color: #64748b; text-align: center;">Sent by BillTracker Dashboard</p>
+      </div>
+    `;
+
+    // Note: In development with Resend, you can usually only send to your own verified email
+    // For this demo, we'll try to send, but log if it's restricted
+    const { data, error } = await resend.emails.send({
+      from: 'BillTracker <onboarding@resend.dev>',
+      to: ['delivered@resend.dev'], // Use test address or ideally user's email if available
+      subject: subject,
+      html: html,
+    });
+
+    if (error) {
+      console.error(`❌ [Resend Error] ${error.message}`);
+    } else {
+      console.log(`✅ [Email Sent] ${urgency} reminder for ${bill.title} (ID: ${data?.id})`);
+    }
+  } catch (err) {
+    console.error(`❌ [Email Failed] Error sending to Resend:`, err);
+  }
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -92,7 +148,7 @@ export async function registerRoutes(
         const shouldEmail = !lastEmail || !isSameDay(lastEmail, now);
         if (shouldEmail) {
           console.log(`📧 [RED] DAILY EMAIL REMINDER: ${bill.title}`);
-          // Send email here...
+          await sendReminderEmail(bill, 'RED');
           await db.update(bills).set({ lastEmailRemindedAt: now }).where(eq(bills.id, bill.id));
         }
 
@@ -111,7 +167,7 @@ export async function registerRoutes(
         const daysSinceEmail = lastEmail ? differenceInDays(now, lastEmail) : Infinity;
         if (daysSinceEmail >= 2) {
           console.log(`📧 [YELLOW] 2-DAY EMAIL REMINDER: ${bill.title}`);
-          // Send email here...
+          await sendReminderEmail(bill, 'YELLOW');
           await db.update(bills).set({ lastEmailRemindedAt: now }).where(eq(bills.id, bill.id));
         }
       }
