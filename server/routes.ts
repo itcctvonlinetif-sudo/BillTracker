@@ -50,7 +50,7 @@ async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW') {
     // For this demo, we'll try to send, but log if it's restricted
     const { data, error } = await resend.emails.send({
       from: 'BillTracker <onboarding@resend.dev>',
-      to: ['delivered@resend.dev'], // Use test address or ideally user's email if available
+      to: ['acp13505@gmail.com'], // delivered@resend.dev  Use test address or ideally user's email if available
       subject: subject,
       html: html,
     });
