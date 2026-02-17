@@ -107,10 +107,11 @@ export default function Dashboard() {
               onClick={() => setIsAddOpen(true)}
               className="btn-primary shadow-indigo-500/20"
             >
-            <Plus className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Tambah Tagihan</span>
-            <span className="sm:hidden">Baru</span>
-          </Button>
+              <Plus className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Tambah Tagihan</span>
+              <span className="sm:hidden">Baru</span>
+            </Button>
+          </div>
         </div>
       </header>
 

@@ -62,7 +62,7 @@ export default function SettingsPage() {
               <Label htmlFor="email-enabled">Aktifkan Email</Label>
               <Switch 
                 id="email-enabled" 
-                checked={settings?.isEmailEnabled}
+                checked={settings?.isEmailEnabled ?? false}
                 onCheckedChange={(checked) => mutation.mutate({ isEmailEnabled: checked })}
               />
             </div>
@@ -92,7 +92,7 @@ export default function SettingsPage() {
               <Label htmlFor="tele-enabled">Aktifkan Telegram</Label>
               <Switch 
                 id="tele-enabled" 
-                checked={settings?.isTelegramEnabled}
+                checked={settings?.isTelegramEnabled ?? false}
                 onCheckedChange={(checked) => mutation.mutate({ isTelegramEnabled: checked })}
               />
             </div>

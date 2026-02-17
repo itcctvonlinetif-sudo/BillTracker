@@ -12,7 +12,7 @@ import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW') {
+async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW', targetEmail?: string) {
   if (!resend) {
     console.log(`[Email] Skipping real email (API Key missing) for: ${bill.title}`);
     return;
@@ -50,7 +50,7 @@ async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW') {
     // For this demo, we'll try to send, but log if it's restricted
     const { data, error } = await resend.emails.send({
       from: 'BillTracker <onboarding@resend.dev>',
-      to: ['acp13505@gmail.com'], // delivered@resend.dev  Use test address or ideally user's email if available
+      to: [targetEmail || 'acp13505@gmail.com'], 
       subject: subject,
       html: html,
     });
@@ -62,6 +62,48 @@ async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW') {
     }
   } catch (err) {
     console.error(`❌ [Email Failed] Error sending to Resend:`, err);
+  }
+}
+
+async function sendTelegramMessage(bill: any, urgency: string, token: string, chatId: string) {
+  try {
+    const amountStr = Number(bill.amount).toLocaleString('id-ID');
+    const dueDateStr = new Date(bill.dueDate).toLocaleDateString('id-ID', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+
+    const message = urgency === 'RED'
+      ? `🚨 *SEGERA BAYAR: Tagihan ${bill.title} Jatuh Tempo!*\n\n` +
+        `• *Jumlah:* Rp ${amountStr}\n` +
+        `• *Jatuh Tempo:* ${dueDateStr}\n` +
+        `• *Kategori:* ${bill.category}\n\n` +
+        `Silakan segera lakukan pembayaran.`
+      : `📅 *PENGINGAT: Tagihan ${bill.title} Mendekati Jatuh Tempo*\n\n` +
+        `• *Jumlah:* Rp ${amountStr}\n` +
+        `• *Jatuh Tempo:* ${dueDateStr}\n` +
+        `• *Kategori:* ${bill.category}`;
+
+    const url = `https://api.telegram.org/bot${token}/sendMessage`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'Markdown',
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`❌ [Telegram Error] ${JSON.stringify(errorData)}`);
+    } else {
+      console.log(`✅ [Telegram Sent] ${urgency} reminder for ${bill.title}`);
+    }
+  } catch (err) {
+    console.error(`❌ [Telegram Failed] Error sending:`, err);
   }
 }
 
