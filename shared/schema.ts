@@ -19,6 +19,15 @@ export const bills = pgTable("bills", {
   lastRemindedAt: timestamp("last_reminded_at"),
 });
 
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  userEmail: text("user_email"),
+  telegramToken: text("telegram_token"),
+  telegramChatId: text("telegram_chat_id"),
+  isTelegramEnabled: boolean("is_telegram_enabled").default(false),
+  isEmailEnabled: boolean("is_email_enabled").default(true),
+});
+
 export const insertBillSchema = createInsertSchema(bills).omit({ 
   id: true, 
   createdAt: true,
@@ -28,6 +37,10 @@ export const insertBillSchema = createInsertSchema(bills).omit({
   dueDate: z.coerce.date(),
 });
 
+export const insertSettingsSchema = createInsertSchema(settings).omit({ id: true });
+
 export type Bill = typeof bills.$inferSelect;
 export type InsertBill = z.infer<typeof insertBillSchema>;
+export type Settings = typeof settings.$inferSelect;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
 export type BillStatusColor = "red" | "yellow" | "green" | "gray";

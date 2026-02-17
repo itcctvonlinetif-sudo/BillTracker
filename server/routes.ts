@@ -126,6 +126,16 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  app.get("/api/settings", async (req, res) => {
+    const settings = await storage.getSettings();
+    res.json(settings);
+  });
+
+  app.put("/api/settings", async (req, res) => {
+    const settings = await storage.updateSettings(req.body);
+    res.json(settings);
+  });
+
   // === REMINDER SYSTEM (Simulation) ===
   // In a real app, this would be a separate worker or cron job.
   // Here we run a check every minute for demo purposes.
@@ -142,14 +152,21 @@ export async function registerRoutes(
       const lastEmail = bill.lastEmailRemindedAt ? new Date(bill.lastEmailRemindedAt) : null;
       const lastSound = bill.lastRemindedAt ? new Date(bill.lastRemindedAt) : null;
 
+      const settings = await storage.getSettings();
+
       // RED Status: H-2 to H-0 or Overdue
       if (diffDays <= 2) {
         // 1. Email Reminder: Daily
-        const shouldEmail = !lastEmail || !isSameDay(lastEmail, now);
+        const shouldEmail = settings.isEmailEnabled && settings.userEmail && (!lastEmail || !isSameDay(lastEmail, now));
         if (shouldEmail) {
-          console.log(`📧 [RED] DAILY EMAIL REMINDER: ${bill.title}`);
-          await sendReminderEmail(bill, 'RED');
+          console.log(`📧 [RED] DAILY EMAIL REMINDER: ${bill.title} to ${settings.userEmail}`);
+          await sendReminderEmail(bill, 'RED', settings.userEmail!);
           await db.update(bills).set({ lastEmailRemindedAt: now }).where(eq(bills.id, bill.id));
+        }
+
+        // 2. Telegram Reminder: Daily
+        if (settings.isTelegramEnabled && settings.telegramToken && settings.telegramChatId && shouldEmail) {
+           await sendTelegramMessage(bill, 'RED', settings.telegramToken, settings.telegramChatId);
         }
 
         // 2. Sound Reminder: Every X minutes (default 120)

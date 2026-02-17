@@ -1,6 +1,6 @@
 
 import { db } from "./db";
-import { bills, type Bill, type InsertBill } from "@shared/schema";
+import { bills, settings, type Bill, type InsertBill, type Settings, type InsertSettings } from "@shared/schema";
 import { eq, sql, and, gte, lte } from "drizzle-orm";
 
 export interface IStorage {
@@ -11,6 +11,9 @@ export interface IStorage {
   deleteBill(id: number): Promise<void>;
   getUnpaidBills(): Promise<Bill[]>;
   updateLastReminded(id: number): Promise<void>;
+  
+  getSettings(): Promise<Settings>;
+  updateSettings(updates: Partial<InsertSettings>): Promise<Settings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -64,6 +67,24 @@ export class DatabaseStorage implements IStorage {
     await db.update(bills)
       .set({ lastRemindedAt: new Date() })
       .where(eq(bills.id, id));
+  }
+
+  async getSettings(): Promise<Settings> {
+    const [row] = await db.select().from(settings);
+    if (!row) {
+      const [newSettings] = await db.insert(settings).values({}).returning();
+      return newSettings;
+    }
+    return row;
+  }
+
+  async updateSettings(updates: Partial<InsertSettings>): Promise<Settings> {
+    const existing = await this.getSettings();
+    const [updated] = await db.update(settings)
+      .set(updates)
+      .where(eq(settings.id, existing.id))
+      .returning();
+    return updated;
   }
 }
 

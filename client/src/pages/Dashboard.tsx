@@ -5,7 +5,9 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { BillForm } from "@/components/BillForm";
 import { BillDetailDialog } from "@/components/BillDetailDialog";
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Search, Calendar as CalendarIcon, FileText, ShieldCheck, Mail, Volume2 } from "lucide-react";
+import { Link } from "wouter";
+import { Settings as SettingsIcon, Plus, Loader2, Search, Calendar as CalendarIcon, FileText, ShieldCheck, Mail, Volume2 } from "lucide-react";
+
 import { format, isSameDay, addMonths, addYears } from "date-fns";
 import { id } from "date-fns/locale";
 import type { Bill } from "@shared/schema";
@@ -95,10 +97,16 @@ export default function Dashboard() {
               BillTracker
             </h1>
           </div>
-          <Button 
-            onClick={() => setIsAddOpen(true)}
-            className="btn-primary shadow-indigo-500/20"
-          >
+          <div className="flex items-center gap-4">
+            <Link href="/settings">
+              <Button variant="ghost" size="icon" className="text-slate-500">
+                <SettingsIcon className="w-5 h-5" />
+              </Button>
+            </Link>
+            <Button 
+              onClick={() => setIsAddOpen(true)}
+              className="btn-primary shadow-indigo-500/20"
+            >
             <Plus className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Tambah Tagihan</span>
             <span className="sm:hidden">Baru</span>
