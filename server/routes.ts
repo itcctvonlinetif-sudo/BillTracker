@@ -48,9 +48,11 @@ async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW', targetEma
 
     // Note: In development with Resend, you can usually only send to your own verified email
     // For this demo, we'll try to send, but log if it's restricted
+    const recipient = targetEmail || 'acp13505@gmail.com';
+    
     const { data, error } = await resend.emails.send({
       from: 'BillTracker <onboarding@resend.dev>',
-      to: [targetEmail || 'acp13505@gmail.com'], 
+      to: [recipient], 
       subject: subject,
       html: html,
     });
