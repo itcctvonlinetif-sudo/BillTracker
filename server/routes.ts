@@ -178,6 +178,38 @@ export async function registerRoutes(
     res.json(settings);
   });
 
+  app.post("/api/settings/test-email", async (req, res) => {
+    const settings = await storage.getSettings();
+    if (!settings.isEmailEnabled || !settings.userEmail) {
+      return res.status(400).json({ message: "Email not enabled or address missing" });
+    }
+
+    await sendReminderEmail({
+      title: "Tes Notifikasi",
+      amount: "0",
+      dueDate: new Date(),
+      category: "Sistem"
+    }, 'YELLOW', settings.userEmail);
+
+    res.json({ message: "Test email sent" });
+  });
+
+  app.post("/api/settings/test-telegram", async (req, res) => {
+    const settings = await storage.getSettings();
+    if (!settings.isTelegramEnabled || !settings.telegramToken || !settings.telegramChatId) {
+      return res.status(400).json({ message: "Telegram not enabled or configuration missing" });
+    }
+
+    await sendTelegramMessage({
+      title: "Tes Notifikasi",
+      amount: "0",
+      dueDate: new Date(),
+      category: "Sistem"
+    }, 'YELLOW', settings.telegramToken, settings.telegramChatId);
+
+    res.json({ message: "Test Telegram message sent" });
+  });
+
   // === REMINDER SYSTEM (Simulation) ===
   // In a real app, this would be a separate worker or cron job.
   // Here we run a check every minute for demo purposes.

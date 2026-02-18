@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Send, Mail, Bell } from "lucide-react";
+import { ChevronLeft, Send, Mail, Bell, Play } from "lucide-react";
 import { Link } from "wouter";
 import type { Settings as SharedSettings } from "@shared/schema";
 
@@ -29,6 +29,48 @@ export default function SettingsPage() {
         description: "Pengaturan telah disimpan.",
       });
     },
+  });
+
+  const testEmailMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/settings/test-email", {});
+      if (!res.ok) throw new Error("Gagal mengirim email tes");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email Terkirim",
+        description: "Silakan periksa kotak masuk Anda.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Gagal",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  const testTelegramMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/settings/test-telegram", {});
+      if (!res.ok) throw new Error("Gagal mengirim pesan Telegram tes");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Pesan Terkirim",
+        description: "Silakan periksa chat Telegram Anda.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Gagal",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   });
 
   if (isLoading) return null;
@@ -73,7 +115,18 @@ export default function SettingsPage() {
                   placeholder="email@contoh.com" 
                   defaultValue={settings?.userEmail || ""}
                   onBlur={(e) => mutation.mutate({ userEmail: e.target.value })}
+                  className="flex-1"
                 />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={!settings?.userEmail || !settings?.isEmailEnabled || testEmailMutation.isPending}
+                  onClick={() => testEmailMutation.mutate()}
+                  className="shrink-0"
+                >
+                  <Play className="w-3 h-3 mr-2" />
+                  Tes
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -107,11 +160,24 @@ export default function SettingsPage() {
             </div>
             <div className="space-y-2">
               <Label>Chat ID</Label>
-              <Input 
-                placeholder="ID Chat / User" 
-                defaultValue={settings?.telegramChatId || ""}
-                onBlur={(e) => mutation.mutate({ telegramChatId: e.target.value })}
-              />
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="ID Chat / User" 
+                  defaultValue={settings?.telegramChatId || ""}
+                  onBlur={(e) => mutation.mutate({ telegramChatId: e.target.value })}
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  disabled={!settings?.telegramToken || !settings?.telegramChatId || !settings?.isTelegramEnabled || testTelegramMutation.isPending}
+                  onClick={() => testTelegramMutation.mutate()}
+                  className="shrink-0"
+                >
+                  <Play className="w-3 h-3 mr-2" />
+                  Tes
+                </Button>
+              </div>
               <p className="text-[11px] text-slate-400">
                 Gunakan @userinfobot di Telegram untuk mendapatkan Chat ID Anda.
               </p>
