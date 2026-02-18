@@ -50,7 +50,7 @@ async function sendReminderEmail(bill: any, urgency: 'RED' | 'YELLOW', targetEma
     // For this demo, we'll try to send, but log if it's restricted
     const { data, error } = await resend.emails.send({
       from: 'BillTracker <onboarding@resend.dev>',
-      to: [targetEmail || 'acp13505@gmail.com'], 
+      to: [targetEmail], 
       subject: subject,
       html: html,
     });
@@ -256,10 +256,15 @@ export async function registerRoutes(
       else if (diffDays <= 7 && diffDays >= 3) {
         // Email every 2 days
         const daysSinceEmail = lastEmail ? differenceInDays(now, lastEmail) : Infinity;
-        if (daysSinceEmail >= 2) {
-          console.log(`📧 [YELLOW] 2-DAY EMAIL REMINDER: ${bill.title}`);
-          await sendReminderEmail(bill, 'YELLOW');
+        if (daysSinceEmail >= 2 && settings.isEmailEnabled && settings.userEmail) {
+          console.log(`📧 [YELLOW] 2-DAY EMAIL REMINDER: ${bill.title} to ${settings.userEmail}`);
+          await sendReminderEmail(bill, 'YELLOW', settings.userEmail);
           await db.update(bills).set({ lastEmailRemindedAt: now }).where(eq(bills.id, bill.id));
+        }
+
+        // Telegram reminder for Yellow status too if enabled
+        if (settings.isTelegramEnabled && settings.telegramToken && settings.telegramChatId && (lastEmail ? differenceInDays(now, lastEmail) >= 2 : true)) {
+           await sendTelegramMessage(bill, 'YELLOW', settings.telegramToken, settings.telegramChatId);
         }
       }
     }
