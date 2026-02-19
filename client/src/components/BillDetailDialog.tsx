@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { useDeleteBill, useUpdateBill } from "@/hooks/use-bills";
 import { format, formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
-import { Calendar, Trash2, Edit, CreditCard, Wallet, ArrowRight } from "lucide-react";
+import { Calendar, Trash2, Edit, CreditCard, Wallet, ArrowRight, Check } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
 import { useToast } from "@/hooks/use-toast";
 import { useState } from "react";
@@ -133,14 +133,19 @@ export function BillDetailDialog({ bill, isOpen, onClose, statusColor }: BillDet
                   Checklist Pembayaran
                 </h3>
                 
-                <div className="flex items-center space-x-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm transition-all hover:border-primary/50">
+                <div className="flex items-center space-x-3 bg-white p-3 rounded-lg border border-slate-200 shadow-sm transition-all hover:border-primary/50 relative overflow-hidden">
                   <Checkbox 
                     id="paid-check" 
                     checked={isPaid}
                     onCheckedChange={(checked) => handlePaymentToggle(checked === true)}
-                    className="w-6 h-6 rounded-md border-2 border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                    className="w-6 h-6 rounded-md border-2 border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary z-10"
                   />
-                  <div className="grid gap-0.5 leading-none">
+                  {isPaid && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none">
+                      <Check className="w-8 h-8 text-primary" strokeWidth={3} />
+                    </div>
+                  )}
+                  <div className="grid gap-0.5 leading-none z-10">
                     <Label 
                       htmlFor="paid-check" 
                       className={cn(
