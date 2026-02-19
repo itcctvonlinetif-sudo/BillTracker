@@ -90,9 +90,7 @@ export default function Dashboard() {
       <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-lg border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold font-display">
-              B
-            </div>
+            <img src="/favicon.png" alt="Logo" className="w-8 h-8 rounded-lg" />
             <h1 className="font-display font-bold text-xl tracking-tight text-slate-900">
               BillTracker
             </h1>
