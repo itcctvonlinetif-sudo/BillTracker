@@ -26,6 +26,9 @@ export const settings = pgTable("settings", {
   telegramChatId: text("telegram_chat_id"),
   isTelegramEnabled: boolean("is_telegram_enabled").default(false),
   isEmailEnabled: boolean("is_email_enabled").default(true),
+  isSoundEnabled: boolean("is_sound_enabled").default(true),
+  alertSoundUrl: text("alert_sound_url"),
+  isMuted: boolean("is_muted").default(false),
 });
 
 export const insertBillSchema = createInsertSchema(bills).omit({ 

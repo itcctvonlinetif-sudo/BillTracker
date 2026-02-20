@@ -212,6 +212,16 @@ export async function registerRoutes(
     res.json({ message: "Test Telegram message sent" });
   });
 
+  app.post("/api/settings/upload-sound", async (req, res) => {
+    // In a real app, we'd use multer to handle file upload.
+    // For this environment, we'll simulate or assume a URL is provided.
+    const { soundUrl } = req.body;
+    if (!soundUrl) return res.status(400).json({ message: "Sound URL missing" });
+    
+    const settings = await storage.updateSettings({ alertSoundUrl: soundUrl });
+    res.json(settings);
+  });
+
   // === REMINDER SYSTEM (Simulation) ===
   // In a real app, this would be a separate worker or cron job.
   // Here we run a check every minute for demo purposes.

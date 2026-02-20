@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { format, startOfMonth, endOfMonth, isSameDay, isWithinInterval, subDays, differenceInDays, addMonths, addYears } from "date-fns";
 import { id } from "date-fns/locale";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import type { Bill, BillStatusColor } from "@shared/schema";
+import type { Bill, BillStatusColor, Settings as SharedSettings } from "@shared/schema";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,24 +34,37 @@ export function getBillStatusColor(bill: Bill, referenceDate: Date = new Date())
 }
 
 export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }: CalendarViewProps) {
+  const { data: settings } = useQuery<SharedSettings>({
+    queryKey: ["/api/settings"],
+  });
+
   useEffect(() => {
     // Play sound alert for RED status if sound is enabled and within browser permissions
     const redBills = bills.filter(b => getBillStatusColor(b) === 'red');
-    if (redBills.length > 0) {
+    
+    if (redBills.length > 0 && settings?.isSoundEnabled && !settings?.isMuted) {
       const playAlert = () => {
-        // Use a more standard/reliable sound URL
-        const audio = new Audio("https://cdn.pixabay.com/audio/2022/03/15/audio_78390a3607.mp3");
+        const soundUrl = settings.alertSoundUrl || "https://cdn.pixabay.com/audio/2022/03/15/audio_78390a3607.mp3";
+        const audio = new Audio(soundUrl);
         audio.volume = 0.5;
+        // Loop the sound as requested (continuous until paid or muted)
+        audio.loop = true;
         audio.play().catch(() => {
           console.log("Audio playback blocked. Click anywhere on the page to enable sound alerts.");
         });
+        return audio;
       };
       
-      // Attempt to play on mount/update if there are red bills
-      // Browser will block this until first user interaction
-      playAlert();
+      const audioInstance = playAlert();
+      
+      return () => {
+        if (audioInstance) {
+          audioInstance.pause();
+          audioInstance.src = "";
+        }
+      };
     }
-  }, [bills]);
+  }, [bills, settings?.isSoundEnabled, settings?.isMuted, settings?.alertSoundUrl]);
 
   // Custom render for day content to show dots
   const DayContent = ({ date }: { date: Date }) => {

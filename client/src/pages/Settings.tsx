@@ -1,4 +1,5 @@
 
+import React, { useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { ChevronLeft, Send, Mail, Bell, Play } from "lucide-react";
+import { ChevronLeft, Send, Mail, Bell, Play, Volume2, VolumeX, Upload } from "lucide-react";
 import { Link } from "wouter";
 import type { Settings as SharedSettings } from "@shared/schema";
 
@@ -16,6 +17,8 @@ export default function SettingsPage() {
   const { data: settings, isLoading } = useQuery<SharedSettings>({
     queryKey: ["/api/settings"],
   });
+
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const mutation = useMutation({
     mutationFn: async (updates: Partial<SharedSettings>) => {
@@ -30,6 +33,29 @@ export default function SettingsPage() {
       });
     },
   });
+
+  const playTestSound = () => {
+    if (settings?.alertSoundUrl) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      const audio = new Audio(settings.alertSoundUrl);
+      audioRef.current = audio;
+      audio.play().catch(e => {
+        toast({
+          title: "Gagal memutar suara",
+          description: "Klik di mana saja pada halaman lalu coba lagi.",
+          variant: "destructive"
+        });
+      });
+    } else {
+      toast({
+        title: "Suara belum diatur",
+        description: "Silakan masukkan URL suara terlebih dahulu.",
+      });
+    }
+  };
 
   const testEmailMutation = useMutation({
     mutationFn: async () => {
@@ -180,6 +206,65 @@ export default function SettingsPage() {
               </div>
               <p className="text-[11px] text-slate-400">
                 Gunakan @userinfobot di Telegram untuk mendapatkan Chat ID Anda.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Volume2 className="w-5 h-5 text-indigo-500" />
+              Alert Suara (PRTG Style)
+            </CardTitle>
+            <CardDescription>Konfigurasi alert suara untuk tagihan kritis (Merah).</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between py-2">
+              <Label htmlFor="sound-enabled">Aktifkan Suara</Label>
+              <Switch 
+                id="sound-enabled" 
+                checked={settings?.isSoundEnabled ?? false}
+                onCheckedChange={(checked) => mutation.mutate({ isSoundEnabled: checked })}
+              />
+            </div>
+            
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <Label htmlFor="mute-enabled">Mute Alert</Label>
+                <p className="text-xs text-slate-500">Hentikan suara sementara tanpa mematikan fitur.</p>
+              </div>
+              <Button
+                variant={settings?.isMuted ? "destructive" : "outline"}
+                size="sm"
+                onClick={() => mutation.mutate({ isMuted: !settings?.isMuted })}
+              >
+                {settings?.isMuted ? <VolumeX className="w-4 h-4 mr-2" /> : <Volume2 className="w-4 h-4 mr-2" />}
+                {settings?.isMuted ? "Unmute" : "Mute"}
+              </Button>
+            </div>
+
+            <div className="space-y-2">
+              <Label>URL Suara Alert (.mp3 / .wav)</Label>
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="https://example.com/alert.mp3" 
+                  defaultValue={settings?.alertSoundUrl || ""}
+                  onBlur={(e) => mutation.mutate({ alertSoundUrl: e.target.value })}
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={playTestSound}
+                  className="shrink-0"
+                >
+                  <Play className="w-3 h-3 mr-2" />
+                  Tes Suara
+                </Button>
+              </div>
+              <p className="text-[11px] text-slate-400">
+                Tagihan Merah (≤ 2 hari) akan membunyikan suara ini secara kontinu.
               </p>
             </div>
           </CardContent>
