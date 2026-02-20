@@ -215,7 +215,7 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Volume2 className="w-5 h-5 text-indigo-500" />
-              Alert Suara (PRTG Style)
+              Alert Suara
             </CardTitle>
             <CardDescription>Konfigurasi alert suara untuk tagihan kritis (Merah).</CardDescription>
           </CardHeader>
@@ -245,12 +245,22 @@ export default function SettingsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>URL Suara Alert (.mp3 / .wav)</Label>
+              <Label>File Suara Alert (.mp3 / .wav)</Label>
               <div className="flex gap-2">
                 <Input 
-                  placeholder="https://example.com/alert.mp3" 
-                  defaultValue={settings?.alertSoundUrl || ""}
-                  onBlur={(e) => mutation.mutate({ alertSoundUrl: e.target.value })}
+                  type="file"
+                  accept="audio/mpeg,audio/wav"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const base64 = event.target?.result as string;
+                        mutation.mutate({ alertSoundUrl: base64 });
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
                   className="flex-1"
                 />
                 <Button 
