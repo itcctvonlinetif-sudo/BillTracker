@@ -25,10 +25,13 @@ export function getBillStatusColor(bill: Bill, referenceDate: Date = new Date())
   if (isPaidStatus(bill)) return "gray";
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const dueDate = new Date(bill.dueDate);
+  dueDate.setHours(0, 0, 0, 0);
+  
   const diffDays = differenceInDays(dueDate, today);
 
-  if (diffDays <= 2) return "red"; // H-2 to H-0 or overdue
+  if (diffDays <= 2) return "red"; // H-2 to H-0 or overdue (today is H-0)
   if (diffDays <= 7) return "yellow"; // H-7 to H-3
   return "green"; // > H-7
 }

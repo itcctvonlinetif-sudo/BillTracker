@@ -260,7 +260,11 @@ export default function SettingsPage() {
                       reader.onload = (event) => {
                         const base64 = event.target?.result as string;
                         setPreviewSound(base64);
-                        mutation.mutate({ alertSoundUrl: base64 });
+                        mutation.mutate({ alertSoundUrl: base64 }, {
+                          onSuccess: () => {
+                            queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+                          }
+                        });
                       };
                       reader.readAsDataURL(file);
                     }
