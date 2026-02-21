@@ -34,13 +34,16 @@ export default function SettingsPage() {
     },
   });
 
+  const [previewSound, setPreviewSound] = React.useState<string | null>(null);
+
   const playTestSound = () => {
-    if (settings?.alertSoundUrl) {
+    const soundToPlay = previewSound || settings?.alertSoundUrl;
+    if (soundToPlay) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
       }
-      const audio = new Audio(settings.alertSoundUrl);
+      const audio = new Audio(soundToPlay);
       audioRef.current = audio;
       audio.play().catch(e => {
         toast({
@@ -52,7 +55,7 @@ export default function SettingsPage() {
     } else {
       toast({
         title: "Suara belum diatur",
-        description: "Silakan masukkan URL suara terlebih dahulu.",
+        description: "Silakan pilih file suara terlebih dahulu.",
       });
     }
   };
@@ -256,6 +259,7 @@ export default function SettingsPage() {
                       const reader = new FileReader();
                       reader.onload = (event) => {
                         const base64 = event.target?.result as string;
+                        setPreviewSound(base64);
                         mutation.mutate({ alertSoundUrl: base64 });
                       };
                       reader.readAsDataURL(file);
