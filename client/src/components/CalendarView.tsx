@@ -47,12 +47,15 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
     
     if (redBills.length > 0 && settings?.isSoundEnabled && !settings?.isMuted) {
       const playAlert = () => {
-        const soundUrl = settings.alertSoundUrl || "https://cdn.pixabay.com/audio/2022/03/15/audio_78390a3607.mp3";
+        const soundUrl = settings.alertSoundUrl;
+        if (!soundUrl) return null;
+        
         const audio = new Audio(soundUrl);
         audio.volume = 0.5;
         // Loop the sound as requested (continuous until paid or muted)
         audio.loop = true;
-        audio.play().catch(() => {
+        audio.play().catch((err) => {
+          console.error("Audio playback failed:", err);
           console.log("Audio playback blocked. Click anywhere on the page to enable sound alerts.");
         });
         return audio;
@@ -64,6 +67,7 @@ export function CalendarView({ bills, onSelectDate, onSelectBill, selectedDate }
         if (audioInstance) {
           audioInstance.pause();
           audioInstance.src = "";
+          audioInstance.load();
         }
       };
     }

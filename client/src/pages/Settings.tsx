@@ -250,27 +250,30 @@ export default function SettingsPage() {
             <div className="space-y-2">
               <Label>File Suara Alert (.mp3 / .wav)</Label>
               <div className="flex gap-2">
-                <Input 
-                  type="file"
-                  accept="audio/mpeg,audio/wav"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (event) => {
-                        const base64 = event.target?.result as string;
-                        setPreviewSound(base64);
-                        mutation.mutate({ alertSoundUrl: base64 }, {
-                          onSuccess: () => {
-                            queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
-                          }
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    }
-                  }}
-                  className="flex-1"
-                />
+                <div className="flex-1 relative">
+                  <Input 
+                    type="file"
+                    accept="audio/mpeg,audio/wav"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                          const base64 = event.target?.result as string;
+                          setPreviewSound(base64);
+                          mutation.mutate({ alertSoundUrl: base64 });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="w-full pr-10"
+                  />
+                  {(previewSound || settings?.alertSoundUrl) && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Volume2 className="w-4 h-4 text-emerald-500" />
+                    </div>
+                  )}
+                </div>
                 <Button 
                   variant="outline" 
                   size="sm"
